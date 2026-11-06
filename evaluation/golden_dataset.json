@@ -1,0 +1,6 @@
+[
+  {"id":"NASA-001","question":"What electron outflow jet velocity was reported for the 3 August 2017 flux-rope re-reconnection event?","expected_numbers":["1,000","1,500"],"relevant_files":["poh_2019_flux_rope_dissipation.pdf"]},
+  {"id":"NASA-002","question":"What did Delano et al. conclude about mass dependence of the reflection coefficient for southward IMF?","expected_numbers":[],"relevant_files":["delano_2019_helium_hydrogen_density_ratio.pdf"]},
+  {"id":"NASA-003","question":"What evidence supports an off-equator EMIC wave source region?","expected_numbers":[],"relevant_files":["vines_2019_emic_waves.pdf"]},
+  {"id":"NASA-004","question":"What is the atmospheric composition of the exoplanet discussed in these papers?","expected_numbers":[],"relevant_files":[],"unanswerable":true}
+]

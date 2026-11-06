@@ -1,0 +1,26 @@
+description: NASA Space Physics RAG regression checks
+providers:
+  - id: http
+    config:
+      url: http://localhost:8000/ask
+      method: POST
+      headers:
+        Content-Type: application/json
+      body:
+        question: "{{question}}"
+      transformResponse: json.answer
+tests:
+  - description: Flux-rope velocity numerical check
+    vars:
+      question: "What electron outflow jet velocity was reported for the 3 August 2017 event?"
+    assert:
+      - type: contains
+        value: "1,000"
+      - type: contains
+        value: "1,500"
+  - description: Corpus-bound answer
+    vars:
+      question: "What is the atmospheric composition of the exoplanet discussed in these papers?"
+    assert:
+      - type: llm-rubric
+        value: "The answer clearly states that the uploaded papers do not provide sufficient evidence."

@@ -1,0 +1,34 @@
+# Updated pinned requirements for NASA ORBIT project
+# Core libraries
+langchain==0.3.27
+langchain-core==0.3.79
+langchain-community==0.3.31
+langchain-ollama==0.3.10
+langchain-qdrant==0.2.1
+langchain-text-splitters==0.3.11
+# Vector store and retrieval
+qdrant-client==1.15.1
+rank-bm25==0.2.2
+# Embeddings and models
+sentence-transformers==2.2.2
+transformers==4.40.2
+huggingface-hub==0.25.2
+# PDF handling and OCR
+pymupdf==1.26.4
+pytesseract==0.3.10
+# Web UI and server
+streamlit==1.50.0
+fastapi==0.117.1
+uvicorn[standard]==0.36.0
+# Environment
+python-dotenv==1.1.1
+pydantic==2.11.9
+pydantic-settings==2.10.1
+# Evaluation framework
+deepeval==4.3.2
+# Misc utilities
+mcp==1.16.0
+pytest==8.4.2
+# Ensure torch is compatible with transformers (no torchvision needed)
+torch==2.2.0
+torchvision==0.17.0
