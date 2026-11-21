@@ -6,44 +6,35 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.retrievers import BM25Retriever
 from langchain_qdrant import QdrantVectorStore
 from config import settings
-from langchain_core.embeddings import Embeddings
-import logging
 
 def get_device():
     """Automatically select CUDA when available, otherwise CPU."""
     return "cuda" if torch.cuda.is_available() else "cpu"
 
 def get_embeddings():
-    """Return an embedding model. If HuggingFaceEmbeddings cannot be imported, fall back to a dummy
-    implementation that satisfies LangChain's Embeddings interface with 384‑dim vectors.
-    """
+    """Load the configured local Hugging Face embedding model."""
     device = get_device()
     print(f"Loading embedding model on: {device.upper()}")
-    try:
-        return HuggingFaceEmbeddings(
-            model_name=settings.embedding_model,
-            model_kwargs={"device": device},
-            encode_kwargs={"normalize_embeddings": True}
+    return HuggingFaceEmbeddings(
+        model_name=settings.embedding_model,
+        model_kwargs={"device": device},
+        encode_kwargs={"normalize_embeddings": True}
+    )
+
+def get_qdrant_connection_kwargs():
+    endpoint = settings.qdrant_cluster_endpoint.strip()
+    api_key = settings.qdrant_api_key.strip()
+    if not endpoint or not api_key:
+        raise ValueError(
+            "QDRANT_CLUSTER_ENDPOINT and QDRANT_API_KEY must both be set to use Qdrant Cloud."
         )
-    except Exception as e:
-        logging.warning("HuggingFaceEmbeddings import failed (%s). Using dummy embeddings.", e)
-        class DummyEmbeddings(Embeddings):
-            """Dummy embeddings returning zero vectors of dimension 384 for compatibility."""
-            def embed_documents(self, texts):
-                import numpy as np
-                return np.zeros((len(texts), 384)).tolist()
-            def embed_query(self, text):
-                import numpy as np
-                return np.zeros(384).tolist()
-        return DummyEmbeddings()
+    return {"url": endpoint, "api_key": api_key}
 
 def build_index(chunks):
-    Path(settings.qdrant_path).parent.mkdir(parents=True, exist_ok=True)
-
     store = QdrantVectorStore.from_documents(
         documents=chunks,
         embedding=get_embeddings(),
-        path=settings.qdrant_path,
+        **get_qdrant_connection_kwargs(),
         collection_name=settings.qdrant_collection,
         force_recreate=True
     )
@@ -63,7 +54,7 @@ def build_index(chunks):
 def load_index():
     store = QdrantVectorStore.from_existing_collection(
         embedding=get_embeddings(),
-        path=settings.qdrant_path,
+        **get_qdrant_connection_kwargs(),
         collection_name=settings.qdrant_collection
     )
 

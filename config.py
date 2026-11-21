@@ -11,7 +11,8 @@ class Settings(BaseSettings):
     embedding_model_upgrade: str = "BAAI/bge-m3"
     use_bge_m3: bool = False
     reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
-    qdrant_path: str = "./storage/qdrant"
+    qdrant_api_key: str = ""
+    qdrant_cluster_endpoint: str = ""
     qdrant_collection: str = "nasa_space_physics"
     bm25_path: str = "./storage/bm25.pkl"
     sqlite_path: str = "./storage/orbit.sqlite"
@@ -46,14 +47,14 @@ class Settings(BaseSettings):
         return self.embedding_model_upgrade if self.use_bge_m3 else self.embedding_model
 
     def ensure_dirs(self) -> None:
-        for path in (
-            self.qdrant_path,
+        paths = [
             Path(self.bm25_path).parent,
             Path(self.sqlite_path).parent,
             self.library_dir,
             self.raw_dir,
             self.figures_dir,
-        ):
+        ]
+        for path in paths:
             Path(path).mkdir(parents=True, exist_ok=True)
 
 

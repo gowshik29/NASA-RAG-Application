@@ -1,3 +1,4 @@
+import pytest
 from langchain_core.documents import Document
 from fastapi.testclient import TestClient
 
@@ -6,6 +7,7 @@ from api import AskRequest
 from rag import NASAResearchRAG
 from retrieval.rerank import LocalReranker
 from config import settings
+from retrieval.index import get_embeddings, get_qdrant_connection_kwargs
 
 
 class FakeRetriever:
@@ -88,6 +90,38 @@ def test_reranker_uses_configured_model(monkeypatch):
     assert model.model_name == settings.reranker_model
     assert model.device in {"cpu", "cuda"}
 
+def test_qdrant_connection_uses_cloud_when_configured(monkeypatch):
+    monkeypatch.setattr(settings, "qdrant_cluster_endpoint", "https://example.qdrant.io")
+    monkeypatch.setattr(settings, "qdrant_api_key", "test-key")
+
+    assert get_qdrant_connection_kwargs() == {
+        "url": "https://example.qdrant.io",
+        "api_key": "test-key",
+    }
+
+def test_qdrant_connection_requires_cloud_settings_when_unset(monkeypatch):
+    monkeypatch.setattr(settings, "qdrant_cluster_endpoint", "")
+    monkeypatch.setattr(settings, "qdrant_api_key", "")
+
+    with pytest.raises(ValueError, match="must both be set"):
+        get_qdrant_connection_kwargs()
+
+def test_qdrant_connection_requires_both_cloud_settings(monkeypatch):
+    monkeypatch.setattr(settings, "qdrant_cluster_endpoint", "https://example.qdrant.io")
+    monkeypatch.setattr(settings, "qdrant_api_key", "")
+
+    with pytest.raises(ValueError, match="must both be set"):
+        get_qdrant_connection_kwargs()
+
+def test_embedding_errors_are_not_replaced_with_dummy_vectors(monkeypatch):
+    def fail_embedding_load(**kwargs):
+        raise RuntimeError("model unavailable")
+
+    monkeypatch.setattr("retrieval.index.get_device", lambda: "cpu")
+    monkeypatch.setattr("retrieval.index.HuggingFaceEmbeddings", fail_embedding_load)
+
+    with pytest.raises(RuntimeError, match="model unavailable"):
+        get_embeddings()
 
 def test_api_routes_use_lifespan_rag(monkeypatch):
     class FakeRAG:
